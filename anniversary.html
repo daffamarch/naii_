@@ -283,7 +283,6 @@
 
 <body>
 
-    <!-- CSS ADDITIONS -->
     <style>
         /* Music FAB (Floating Action Button) */
         .music-fab {
@@ -403,12 +402,10 @@
 
     <div class="hearts-bg" id="hearts-bg"></div>
 
-    <!-- Music Control FAB (Visible by default in main content) -->
     <div class="music-fab" id="music-btn" onclick="toggleMusic()" style="display: none;">
         <i class="fas fa-play" id="music-icon"></i>
     </div>
 
-    <!-- OVERLAY (LOCK SCREEN) -->
     <div id="overlay">
         <h2
             style="margin-bottom: 20px; color: var(--deep-pink); font-family: 'Dancing Script', cursive; font-size: 2.5rem;">
@@ -422,13 +419,11 @@
         <button class="btn-open" onclick="checkPassword()">Unlock ❤️</button>
     </div>
 
-    <!-- MAIN CONTENT -->
     <div class="container" id="main-content">
         <h1>Three Years of Us</h1>
         <p class="subtitle">1,095 Days, Infinite Memories</p>
 
         <div class="photo-frame">
-            <!-- PAKE FOTO BERDUA.JPEG SESUAI SS -->
             <img src="foto berdua.jpeg" alt="Our Photo" id="main-photo">
         </div>
 
@@ -438,7 +433,6 @@
                 and every low. You are my peace."</p>
         </div>
 
-        <!-- INTERACTIVE SECTION -->
         <div class="interactive-section">
             <button class="fun-btn" onclick="showReason()">Why I Love You?</button>
             <button class="fun-btn" onclick="burstHearts()">Send Love 💖</button>
@@ -452,27 +446,22 @@
                 keep growing together.</p>
         </div>
 
-        <!-- SONG SECTION -->
         <div class="song-section-title">Song that Reminds me of You</div>
         <div class="lyrics-section">
             <p style="font-size: 0.8rem; color: #aaa; margin-bottom: 20px;">(Music: The One - Kodaline)</p>
             <div id="lyrics-container">
-                <!-- Lyrics injected here -->
             </div>
         </div>
 
-        <!-- FOOTER -->
         <footer>
             Made with all my heart by your better half <br> <span style="color: var(--deep-pink); font-weight: bold;">-
                 Daffa</span>
         </footer>
     </div>
 
-    <audio id="audio-player" src="Kodaline - The One (Lyrics).mp3"></audio>
+    <audio id="audio-player" src="Kodaline - The One (Lyrics).mp3" preload="auto"></audio>
 
-    <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <!-- FontAwesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <script>
@@ -706,21 +695,41 @@
             }
         }
 
+        // --- SAFARI FIX START ---
+        // Kita ubah logika startExperience agar sesuai kebijakan Safari
         function startExperience() {
             overlay.style.opacity = '0';
             setTimeout(() => {
                 overlay.style.display = 'none';
                 mainContent.style.display = 'block';
-                musicBtn.style.display = 'flex'; // Show music button
+                musicBtn.style.display = 'flex';
 
                 setTimeout(() => { mainContent.style.opacity = '1'; }, 100);
 
-                // NO AUTOPLAY as requested
-                // audio.play(); 
+                // 1. Play dulu (wajib interaksi user)
+                var playPromise = audio.play();
+
+                if (playPromise !== undefined) {
+                    playPromise.then(_ => {
+                        // 2. Kalau berhasil play, baru set menitnya
+                        audio.currentTime = 125;
+                        musicIcon.className = 'fas fa-pause';
+
+                        // 3. Double Check (Kadang Safari bandel kalau buffering belum nyampe)
+                        if (audio.currentTime < 100) {
+                            setTimeout(() => { audio.currentTime = 125; }, 500);
+                        }
+                    })
+                        .catch(error => {
+                            console.log("Auto-play blocked:", error);
+                        });
+                }
+
                 audio.addEventListener('timeupdate', syncLyrics);
-                audio.currentTime = 120; // Ready at 2:05
+
             }, 1000);
         }
+        // --- SAFARI FIX END ---
 
         function createHearts() {
             const container = document.getElementById('hearts-bg');
